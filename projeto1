@@ -1,0 +1,125 @@
+// Criando o BANCO DE DADOS 
+CREATE DATABASE COMPRAS;
+
+// Após a criação do BANCO DE DADOS, darei prosseguimento a criação das tabelas e de suas respectivas colunas
+CREATE TABLE cidade (
+CODIGO_CID SERIAL NOT NULL PRIMARY KEY,
+NOME_CID VARCHAR(50),
+UF_CID INT);
+
+CREATE TABLE FORNECEDOR (
+CODIGO_FORNE SERIAL NOT NULL PRIMARY KEY,
+NOME_RS VARCHAR(50) NOT NULL UNIQUE,
+STAT CHAR CHECK(STAT IN('A','I')),
+CONTATO VARCHAR(50) NOT NULL,
+LOGRADOURO VARCHAR(30) NOT NULL,
+COMPLEMENTO VARCHAR(30),
+NUMERO INT,
+BAIRRO VARCHAR(20),
+COD_CIDADE INT NOT NULL REFERENCES CIDADE(CODIGO_CID),
+DT_ABERTURA_EMPRESA DATE NOT NULL,
+NUMERO_ITENS INT NOT NULL
+);
+
+// Aqui fiz uma consulta básica para saber o bairro onde o número de Itens são maiores que 10.
+SELECT NOME_RS
+FROM FORNECEDOR
+WHERE BAIRRO ISNULL AND NUMERO_ITENS > 10;
+
+// Criei uma VIEW para saber quais são os fornecedores da cidade de Itabuna
+// Importante ressaltar que uma VIEW consiste numa tabela virtual onde podemos consultar condições baseadas em um SELECT. 2 grandes vantagens de usar a VIEW é o 
+Reuso: onde você pode acessar essa VIEW novamente, isso é bom pra saber o andamento do código, pra ver se realmente está indo tudo certo e a Simplicidade do código que
+permite um código mais limpo dentro de um SELECT mais complexo.
+
+
+CREATE VIEW CONTATOS_ITABUNA
+AS SELECT CONTATO  
+FROM FORNECEDOR, CIDADE
+WHERE NOME_CID = 'ITABUNA'
+
+
+// Aqui é mais uma consulta onde procuro o nome, contato e a data da abertura da empresa que começam com a letra "C"
+SELECT NOME_RS, CONTATO, DT_ABERTURA_EMPRESA
+FROM FORNECEDOR
+WHERE NOME_RS LIKE 'C%';
+
+
+// Criei mais tabelas
+CREATE TABLE PAI_PAIS (
+PAI_CD_PAIS SERIAL PRIMARY KEY,
+PAI_NM_PAIS VARCHAR(50) NOT NULL,
+PAI_DC_NACIONALIDADE VARCHAR(18) NOT NULL)
+
+CREATE TABLE ATO_ATOR (
+ATO_CD_CODIGO SERIAL PRIMARY KEY,
+ATO_NM_ATOR VARCHAR(50) NOT NULL,
+ATO_SX_ATOR CHAR CHECK (ATO_SX_ATOR IN('F','M')),
+ATO_DT_NASCIMENTO TIMESTAMP NOT NULL,
+ATO_RG_ATOR BIGINT NOT NULL UNIQUE,
+ATO_CD_PAIS_NACIONALIDADE INT NOT NULL REFERENCES PAI_PAIS (PAI_CD_PAIS))
+
+CREATE TABLE GEN_GENERO
+(GEN_CD_GENERO SERIAL PRIMARY KEY,
+GEN_DC_GENERO VARCHAR(50) NOT NULL)
+
+CREATE TABLE FIL_FILME (
+fil_cd_filme SERIAL PRIMARY KEY,
+fil_tl_original VARCHAR(85) NOT NULL,
+fil_tl_portugues VARCHAR(85) NOT NULL,
+fil_cd_genero INT NOT NULL REFERENCES GEN_GENERO(GEN_CD_GENERO),
+fil_cd_duracao varchar(20) NOT NULL,
+fil_dc_importancia VARCHAR(99) NOT NULL,
+fil_dc_impropriedade VARCHAR(20) NOT NULL,
+fil_cd_pais_origem INT NOT NULL REFERENCES PAI_PAIS (PAI_CD_PAIS),
+fil_cd_diretor INT NOT NULL REFERENCES ATO_ATOR (ATO_CD_CODIGO))
+
+CREATE TABLE FCI_FILME_CINEMA (
+fci_cd_filme INT NOT NULL,
+fci_cd_cinema INT NOT NULL,
+fci_dt_inicio timestamp NOT NULL,
+fci_dt_fim TIMESTAMP NOT NULL)
+
+CREATE TABLE EST_ESTADO (
+est_cd_estado SERIAL PRIMARY KEY, 
+est_nm_estado VARCHAR(50) NOT NULL,
+est_cd_pais INT NOT NULL REFERENCES PAI_PAIS(PAI_CD_PAIS))
+
+CREATE TABLE CID_CIDADE(
+cid_cd_cidade SERIAL PRIMARY KEY, 
+cid_nm_cidade VARCHAR(50) NOT NULL,
+cid_cd_estado INT NOT NULL REFERENCES EST_ESTADO(EST_CD_ESTADO))
+
+CREATE TABLE CIN_CINEMA(
+cin_cd_cinema SERIAL PRIMARY KEY,
+cin_nm_fantasia VARCHAR(50) NOT NULL,
+cin_dc_logradouro VARCHAR(30) NOT NULL,
+cin_dc_complemento VARCHAR(20) NOT NULL,
+cin_nu_numero INT,
+cin_dc_bairro VARCHAR(20) NOT NULL,
+cin_cd_cidade INT NOT NULL REFERENCES CID_CIDADE(CID_CD_CIDADE),
+cin_cp_lotacao INT NOT NULL )
+
+
+SELECT FIL_TL_ORIGINAL
+FROM FIL_FILME
+WHERE FIL_TL_PORTUGUES ISNULL 
+ORDER BY FIL_TL_ORIGINAL 
+
+UPDATE PAI_PAIS SET PAI_NM_PAIS = 'Japão'
+WHERE PAI_CD_PAIS = 1 AND PAI_DC_NACIONALIDADE = 'japonês'
+
+
+// Aqui inserir itens nas tabelas
+insert into pai_pais(PAI_NM_PAIS,PAI_DC_NACIONALIDADE)
+values('Alemanha', 'alemão'),
+('Brasil', 'brasileiro'),
+('Chile', 'Chileno'),
+('Argentina', 'argentino'),
+('Italia', 'Italiano')
+
+insert into ato_ator (ATO_NM_ATOR,ATO_SX_ATOR,ATO_DT_NASCIMENTO,ATO_RG_ATOR,ATO_CD_PAIS_NACIONALIDADE)
+values('JOÃO', 'M', '17/08/2001 12:45:06', 2001902379, 1),
+('LUANA', 'F', '20/01/2004 13:50:08', 1245879546, 1),
+('LUAN', 'M', '15/05/1978 18:00:25', 1478549875, 1),
+('JOANA', 'F', '04/08/2002 19:24:23', 5486598756, 1),
+('MARIA', 'F', '01/01/2001 14:22:11', 6548975649, 1)
